@@ -5,9 +5,10 @@ Analyzes permissions, identifies potential security issues,
 and provides recommendations for hardening the Android environment.
 """
 
+import argparse
 import xml.etree.ElementTree as ET
 import json
-import sys
+import subprocess
 import os
 from datetime import datetime
 
@@ -33,7 +34,6 @@ def check_apk_permissions(apk_path):
         # Categorize permissions by protection level
         dangerous = []
         normal = []
-        dangerous_prefixes = ['android.permission.', 'com.'].
         
         for perm in required_permissions:
             if perm.startswith('android.permission.'):
@@ -76,14 +76,17 @@ def check_termux_config():
     findings = []
     for path in config_paths:
         try:
-            # Try to read the file via adb
-            result = os.popen(f'adb shell "cat {path}"').read()
-            if 'request_ignore_battery_optimizations' in result.lower():
-                findings.append(f'{path}: Battery optimization disabled - may impact system performance')
-            if 'system_alert_window' in result.lower():
-                findings.append(f'{path}: System alert window setting present')
-        except:
-            pass
+            # Read the file on the device via adb (no local shell involved)
+            result = subprocess.run(
+                ['adb', 'shell', 'cat', path],
+                capture_output=True, text=True, timeout=10
+            ).stdout
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if 'request_ignore_battery_optimizations' in result.lower():
+            findings.append(f'{path}: Battery optimization disabled - may impact system performance')
+        if 'system_alert_window' in result.lower():
+            findings.append(f'{path}: System alert window setting present')
     
     return findings
 
@@ -131,13 +134,20 @@ def generate_security_report(apk_dir, output_file='security_audit_report.json'):
     return report
 
 if __name__ == '__main__':
-    apk_dir = sys.argv[1] if len(sys.argv) > 1 else '/Users/elias/s6-apks'
-    report = generate_security_report(apk_dir)
-    
+    parser = argparse.ArgumentParser(
+        description='Audit APK permissions and Termux config on an Android device.')
+    parser.add_argument('apk_dir', nargs='?', default='apks',
+                        help='directory containing .apk files (default: ./apks)')
+    parser.add_argument('-o', '--output', default='security_audit_report.json',
+                        help='JSON report path (default: security_audit_report.json)')
+    args = parser.parse_args()
+
+    report = generate_security_report(args.apk_dir, args.output)
+
     print(f"Security Audit Complete")
     print(f"Overall Assessment: {report['overall_assessment']}")
     print(f"Total dangerous permissions across {len(report['apk_analysis'])} APKs: {sum(len(a['dangerous']) for a in report['apk_analysis'])}")
-    print(f"Report saved to: security_audit_report.json")
+    print(f"Report saved to: {args.output}")
     
     # Print summary
     for apk in report['apk_analysis']:
