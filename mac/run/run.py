@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
+import os
 import subprocess
+import sys
 import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def clear():
     subprocess.run("clear", shell=True)
 
 def run_script(script_path, *args):
-    subprocess.run([script_path] + list(args))
+    path = os.path.join(ROOT, script_path)
+    if script_path.endswith(".py"):
+        subprocess.run([sys.executable, path])
+    else:
+        subprocess.run(["sh", path] + [a for a in args if a])
 
 def main_menu():
     while True:

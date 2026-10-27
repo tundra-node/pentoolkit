@@ -1,1 +1,2 @@
-telnet target port
+#!/bin/sh
+telnet "$@"

@@ -1,7 +1,10 @@
 # Imports/Defs to clean up program
+import os
 import subprocess
-import time
 import sys
+import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Clears screen
 def clear():
@@ -9,8 +12,12 @@ def clear():
 
 # Run .py file/run install .sh file
 def run(file):
-    subprocess.run(file, shell=True)
+    path = os.path.join(ROOT, file)
+    if file.endswith(".py"):
+        subprocess.run([sys.executable, path])
+    else:
+        subprocess.run(["sh", path])
 
 # Run .sh file with arg
 def run_script(script_path, *args):
-    subprocess.run([script_path] + list(args))
+    subprocess.run(["sh", os.path.join(ROOT, script_path)] + [a for a in args if a])

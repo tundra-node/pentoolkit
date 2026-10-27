@@ -3,11 +3,11 @@ from imports import *
 
 def main_menu():
     options = {
-        '1': "pass",
-        '2': "pass",
-        '3': "pass",
-        '4': "pass",
-        '5': "pass"
+        '1': None,
+        '2': None,
+        '3': None,
+        '4': None,
+        '5': None
     }
 
     while True:
@@ -23,7 +23,8 @@ def main_menu():
 
         if choice in options:
             clear()
-            run(options[choice])
+            print("Not implemented yet.")
+            time.sleep(1)
         elif choice == '6':
             print("Exiting...")
             break

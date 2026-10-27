@@ -1,1 +1,2 @@
-ftp option userhost
+#!/bin/sh
+ftp "$@"

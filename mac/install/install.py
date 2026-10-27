@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
+import os
 import subprocess
+import sys
 import time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def clear():
     subprocess.run("clear", shell=True)
 
 def run(file):
-    subprocess.run(f"chmod +x {file} && {file}", shell=True)
+    path = os.path.join(ROOT, file)
+    if file.endswith(".py"):
+        subprocess.run([sys.executable, path])
+    else:
+        subprocess.run(["sh", path])
 
 def is_brew_installed():
     return subprocess.run(['brew', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0

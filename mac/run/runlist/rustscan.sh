@@ -1,1 +1,2 @@
-rustscan options target other
+#!/bin/sh
+rustscan "$@"

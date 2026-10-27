@@ -1,1 +1,2 @@
-nmap scan_type options target
+#!/bin/sh
+nmap "$@"
