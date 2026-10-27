@@ -8,6 +8,7 @@ Designed for the Samsung SM-G920P (Android 7.0) de-Googled device.
 __version__ = "1.0.0"
 __device__ = "SM-G920P (zerofltespr), Android 7.0 (SDK 24)"
 
+import argparse
 import json
 import hashlib
 import subprocess
@@ -15,6 +16,7 @@ import sqlite3
 import datetime
 import os
 import sys
+import urllib.request
 
 def get_system_info():
     """Gather device security information via ADB."""
@@ -97,7 +99,8 @@ def check_sqlite_databases(db_path):
     """Analyze SQLite databases for sensitive data."""
     findings = []
     try:
-        conn = sqlite3.connect(db_path)
+        # Read-only so the audit never modifies the database
+        conn = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
         cursor = conn.cursor()
         
         # List all tables
@@ -105,11 +108,13 @@ def check_sqlite_databases(db_path):
         tables = [row[0] for row in cursor.fetchall()]
         
         for table in tables:
+            # Table names come from the database itself, so quote them as identifiers
+            quoted = '"' + table.replace('"', '""') + '"'
             try:
-                cursor.execute(f"PRAGMA table_info({table})")
+                cursor.execute(f"PRAGMA table_info({quoted})")
                 columns = [col[1] for col in cursor.fetchall()]
                 
-                cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                cursor.execute(f"SELECT COUNT(*) FROM {quoted}")
                 count = cursor.fetchone()[0]
                 
                 # Check for sensitive column names
@@ -122,7 +127,7 @@ def check_sqlite_databases(db_path):
                         'sensitive_columns': sensitive_cols,
                         'row_count': count
                     })
-            except:
+            except sqlite3.Error:
                 continue
         
         conn.close()
@@ -145,17 +150,13 @@ def scan_network_ports(host='127.0.0.1', port_range='1-1000'):
         start_port, end_port = 1, 1000
     
     for port in range(start_port, min(end_port + 1, start_port + 50)):  # Limit scan
+        url = f"http://{host}:{port}/"
+        req = urllib.request.Request(url, method='HEAD')
+        # Use timeout to avoid hanging
         try:
-            import urllib.request
-            url = f"http://{host}:{port}/"
-            req = urllib.request.Request(url, method='HEAD')
-            # Use timeout to avoid hanging
-            try:
-                response = urllib.request.urlopen(req, timeout=1)
-                open_ports.append(port)
-            except:
-                closed_ports.append(port)
-        except:
+            urllib.request.urlopen(req, timeout=1)
+            open_ports.append(port)
+        except OSError:  # URLError and HTTPError are OSError subclasses
             closed_ports.append(port)
     
     return {
@@ -196,7 +197,9 @@ def generate_security_report(output_path='/sdcard/Download/security_report.json'
     report['overall_assessment'] = assess_overall(report['recommendations'])
     
     # Write report
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     with open(output_path, 'w') as f:
         json.dump(report, f, indent=2)
     
@@ -217,14 +220,20 @@ def assess_overall(recommendations):
         return 'BASIC - Minimal security configuration'
 
 if __name__ == '__main__':
-    import sys
-    
+    parser = argparse.ArgumentParser(
+        description='Android (Termux) security assessment: APK permissions and device notes.')
+    parser.add_argument('apk_dir', nargs='?', default='/sdcard/Download',
+                        help='directory containing .apk files (default: /sdcard/Download)')
+    parser.add_argument('-o', '--output', default='/sdcard/Download/android_security_report.json',
+                        help='JSON report path (default: /sdcard/Download/android_security_report.json)')
+    args = parser.parse_args()
+
     print(f"=== Android Penetration Testing Toolkit v{__version__} ===")
     print(f"Device: {__device__}")
     print()
     
     # Generate report
-    report = generate_security_report()
+    report = generate_security_report(args.output)
     
     print(f"[1/4] System Information:")
     print(f"    Device: {report['device_info']['device_model']}")
@@ -234,7 +243,7 @@ if __name__ == '__main__':
     print()
     
     # APK analysis from SD card downloads
-    apk_dir = '/sdcard/Download'
+    apk_dir = args.apk_dir
     if os.path.exists(apk_dir):
         print(f"[2/4] APK Security Analysis from {apk_dir}:")
         for fname in sorted(os.listdir(apk_dir)):
@@ -273,10 +282,5 @@ if __name__ == '__main__':
     print(f"  - NetGuard: eu.faircode.netguard v2.337 active")
     print()
     
-    # Save full report
-    report_path = '/sdcard/Download/android_security_report.json'
-    with open(report_path, 'w') as f:
-        json.dump(report, f, indent=2)
-    
-    print(f"Full report saved to: {report_path}")
+    print(f"Full report saved to: {args.output}")
     print(f"\n=== Run: 'python3 android_security_audit.py' in Termux for full analysis ===")
