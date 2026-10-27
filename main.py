@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
+import os
 import platform
 import subprocess
-import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))

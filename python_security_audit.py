@@ -6,11 +6,12 @@ and provides recommendations for hardening the Android environment.
 """
 
 import argparse
-import xml.etree.ElementTree as ET
 import json
-import subprocess
 import os
+import subprocess
+import xml.etree.ElementTree as ET
 from datetime import datetime
+
 
 def check_apk_permissions(apk_path):
     """Analyze APK permissions and report risk level."""
@@ -144,7 +145,7 @@ if __name__ == '__main__':
 
     report = generate_security_report(args.apk_dir, args.output)
 
-    print(f"Security Audit Complete")
+    print("Security Audit Complete")
     print(f"Overall Assessment: {report['overall_assessment']}")
     print(f"Total dangerous permissions across {len(report['apk_analysis'])} APKs: {sum(len(a['dangerous']) for a in report['apk_analysis'])}")
     print(f"Report saved to: {args.output}")

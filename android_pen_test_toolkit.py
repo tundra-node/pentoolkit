@@ -9,14 +9,12 @@ __version__ = "1.0.0"
 __device__ = "SM-G920P (zerofltespr), Android 7.0 (SDK 24)"
 
 import argparse
-import json
-import hashlib
-import subprocess
-import sqlite3
 import datetime
+import json
 import os
-import sys
+import sqlite3
 import urllib.request
+
 
 def get_system_info():
     """Gather device security information via ADB."""
@@ -235,7 +233,7 @@ if __name__ == '__main__':
     # Generate report
     report = generate_security_report(args.output)
     
-    print(f"[1/4] System Information:")
+    print("[1/4] System Information:")
     print(f"    Device: {report['device_info']['device_model']}")
     print(f"    Android: {report['device_info']['android_version']}")
     print(f"    Root: {report['device_info']['root_status']}")
@@ -259,7 +257,7 @@ if __name__ == '__main__':
     print()
     
     # SQLite analysis
-    print(f"[3/4] SQLite Database Analysis:")
+    print("[3/4] SQLite Database Analysis:")
     # Check common database locations
     db_locations = [
         '/data/data/com.termux/files/home/',
@@ -271,16 +269,16 @@ if __name__ == '__main__':
             # Look for .db files
             pass  # Simplified for adb shell execution
     
-    print(f"  (Database analysis requires Termux installation)")
+    print("  (Database analysis requires Termux installation)")
     print()
     
     # Network scan info
-    print(f"[4/4] Network Security Notes:")
-    print(f"  - Port scanning: Use 'nmap -sP 127.0.0.1' in Termux")
-    print(f"  - curl available: /system/bin/curl")
-    print(f"  - Shizuku: moe.shizuku.privileged.api installed")
-    print(f"  - NetGuard: eu.faircode.netguard v2.337 active")
+    print("[4/4] Network Security Notes:")
+    print("  - Port scanning: Use 'nmap -sP 127.0.0.1' in Termux")
+    print("  - curl available: /system/bin/curl")
+    print("  - Shizuku: moe.shizuku.privileged.api installed")
+    print("  - NetGuard: eu.faircode.netguard v2.337 active")
     print()
     
     print(f"Full report saved to: {args.output}")
-    print(f"\n=== Run: 'python3 android_security_audit.py' in Termux for full analysis ===")
+    print("\n=== Run: 'python3 android_security_audit.py' in Termux for full analysis ===")

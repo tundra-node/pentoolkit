@@ -8,12 +8,13 @@ Works both on device (via Termux) and for pre-analysis of APKs.
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
-import os
 import xml.etree.ElementTree as ET
 from datetime import datetime
+
 
 def check_apk_security(apk_path):
     """Analyze APK for security-relevant permissions and components."""
@@ -155,7 +156,7 @@ if __name__ == '__main__':
     with open(output_file, 'w') as f:
         json.dump(report, f, indent=2)
     
-    print(f"Security Audit Complete")
+    print("Security Audit Complete")
     print(f"APKs analyzed: {len(report['apk_analysis'])}")
     print(f"Overall assessment: {report['overall_assessment']}")
     print(f"Report saved to: {output_file}")
