@@ -163,3 +163,8 @@ cython_debug/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Generated audit reports (may contain device data)
+security_audit_report.json
+security_report.json
+android_security_report.json
