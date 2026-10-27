@@ -7,14 +7,14 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def clear():
-    subprocess.run("clear", shell=True)
+    subprocess.run("clear", shell=True, check=False)
 
 def run_script(script_path, *args):
     path = os.path.join(ROOT, script_path)
     if script_path.endswith(".py"):
-        subprocess.run([sys.executable, path])
+        subprocess.run([sys.executable, path], check=False)
     else:
-        subprocess.run(["sh", path] + [a for a in args if a])
+        subprocess.run(["sh", path] + [a for a in args if a], check=False)
 
 def main_menu():
     while True:

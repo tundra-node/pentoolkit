@@ -81,7 +81,7 @@ def check_apk_security(apk_path):
             'high_risk': high_found,
             'risk_level': risk_level
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error analyzing {apk_path}: {e}", file=sys.stderr)
         return None
 
@@ -124,7 +124,7 @@ def check_shizuku_permissions():
     try:
         result = subprocess.run(
             ['adb', 'shell', 'dumpsys', 'package', 'moe.shizuku.privileged.api'],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=10, check=False
         )
         # Parse key permissions from dumpsys output
         output = result.stdout + result.stderr
@@ -138,7 +138,7 @@ def check_shizuku_permissions():
             'install_permissions': perms,
             'raw_output': output[:500] if output else 'No output'
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {'error': str(e)}
 
 if __name__ == '__main__':

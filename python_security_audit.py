@@ -63,7 +63,7 @@ def check_apk_permissions(apk_path):
             'normal': normal,
             'risk_level': 'HIGH' if len(dangerous) > 5 else 'MEDIUM' if len(dangerous) > 2 else 'LOW'
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error analyzing {apk_path}: {e}")
         return None
 
@@ -80,7 +80,7 @@ def check_termux_config():
             # Read the file on the device via adb (no local shell involved)
             result = subprocess.run(
                 ['adb', 'shell', 'cat', path],
-                capture_output=True, text=True, timeout=10
+                capture_output=True, text=True, timeout=10, check=False
             ).stdout
         except (OSError, subprocess.SubprocessError):
             continue

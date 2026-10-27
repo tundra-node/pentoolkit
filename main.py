@@ -8,8 +8,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 def run_file(file_path):
     try:
-        subprocess.run([sys.executable, file_path])
-    except Exception as e:
+        subprocess.run([sys.executable, file_path], check=False)
+    except Exception as e:  # noqa: BLE001
         print(f"Error running the file: {e}")
 
 def main():

@@ -7,17 +7,17 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def clear():
-    subprocess.run("clear", shell=True)
+    subprocess.run("clear", shell=True, check=False)
 
 def run(file):
     path = os.path.join(ROOT, file)
     if file.endswith(".py"):
-        subprocess.run([sys.executable, path])
+        subprocess.run([sys.executable, path], check=False)
     else:
-        subprocess.run(["sh", path])
+        subprocess.run(["sh", path], check=False)
 
 def is_brew_installed():
-    return subprocess.run(['brew', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+    return subprocess.run(['brew', '--version'], capture_output=True, check=False).returncode == 0
 
 def main_menu():
     options = {

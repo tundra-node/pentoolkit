@@ -74,12 +74,11 @@ def analyze_apk_permissions(apk_path):
             'total_dangerous': total_dangerous,
             'risk_level': classify_risk(total_dangerous, category_counts)
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {'error': str(apk_path), 'message': str(e)}
 
 def classify_risk(total_dangerous, category_counts):
     """Classify risk level based on dangerous permissions found."""
-    high_risk_categories = {'sms', 'microphone', 'camera', 'system'}
     critical_categories = {'sms', 'microphone'}
     
     if total_dangerous >= 5:
@@ -129,7 +128,7 @@ def check_sqlite_databases(db_path):
                 continue
         
         conn.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         findings.append({'error': str(e)})
     
     return findings
@@ -144,7 +143,7 @@ def scan_network_ports(host='127.0.0.1', port_range='1-1000'):
         parts = port_range.split('-')
         start_port = int(parts[0]) if len(parts) > 0 else 1
         end_port = int(parts[1]) if len(parts) > 1 else 1000
-    except:
+    except Exception:  # noqa: BLE001
         start_port, end_port = 1, 1000
     
     for port in range(start_port, min(end_port + 1, start_port + 50)):  # Limit scan
