@@ -6,15 +6,18 @@ and provides hardening recommendations for Android security setup.
 Works both on device (via Termux) and for pre-analysis of APKs.
 """
 
+import argparse
 import json
+import re
+import subprocess
 import sys
 import os
+import xml.etree.ElementTree as ET
 from datetime import datetime
 
 def check_apk_security(apk_path):
     """Analyze APK for security-relevant permissions and components."""
     try:
-        import xml.etree.ElementTree as ET
         tree = ET.parse(apk_path)
         root = tree.getroot()
         manifest = root.find('.{http://schemas.android.com/apk/res/android}manifest')
@@ -118,30 +121,17 @@ def generate_security_report(apk_directory='/sdcard/Download'):
 def check_shizuku_permissions():
     """Check Shizuku API permissions via dumpsys."""
     try:
-        import subprocess
         result = subprocess.run(
-            ['', ''],'adb shell dumpsys package moe.shizuku.privileged.api 2>&1',
+            ['adb', 'shell', 'dumpsys', 'package', 'moe.shizuku.privileged.api'],
             capture_output=True, text=True, timeout=10
         )
         # Parse key permissions from dumpsys output
         output = result.stdout + result.stderr
         
         perms = {}
-        import re
-        # Look for install permissions pattern
-        patterns = re.findall(
-            r'install permissions:\s+(.+)', output
-        )
-        
-        for pattern in patterns:
-            installed = re.findall(r'(\w+)=granted?true', pattern)
-            for p in installed:
-                perms[p] = True
-        
-        # Look for runtime permissions
-        runtime_patterns = re.findall(
-            r'runtime permissions:\s+(.+)', output
-        )
+        # dumpsys lines look like "    android.permission.X: granted=true"
+        for name, state in re.findall(r'^\s*([\w.]+): granted=(true|false)', output, re.MULTILINE):
+            perms[name] = state == 'true'
         
         return {
             'install_permissions': perms,
@@ -151,10 +141,16 @@ def check_shizuku_permissions():
         return {'error': str(e)}
 
 if __name__ == '__main__':
-    apk_dir = sys.argv[1] if len(sys.argv) > 1 else '/sdcard/Download'
-    report = generate_security_report(apk_dir)
-    
-    output_file = sys.argv[2] if len(sys.argv) > 2 else '/sdcard/Download/security_audit_report.json'
+    parser = argparse.ArgumentParser(
+        description='Audit APK permissions on Android (Termux) or pre-analyze APKs on a computer.')
+    parser.add_argument('apk_dir', nargs='?', default='/sdcard/Download',
+                        help='directory containing .apk files (default: /sdcard/Download)')
+    parser.add_argument('output', nargs='?', default='/sdcard/Download/security_audit_report.json',
+                        help='JSON report path (default: /sdcard/Download/security_audit_report.json)')
+    args = parser.parse_args()
+
+    report = generate_security_report(args.apk_dir)
+    output_file = args.output
     
     with open(output_file, 'w') as f:
         json.dump(report, f, indent=2)
